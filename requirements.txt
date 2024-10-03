@@ -3,3 +3,4 @@ plotly
 textblob
 pandas
 openai
+openpyxl
