@@ -7,8 +7,8 @@ import openai
 # Cache the data loading to avoid reloading each time the page refreshes
 @st.cache_data
 def load_data():
-    # Load your Excel file
-    df = pd.read_excel(r'C:/Users/Justinian Santos/OneDrive - Nanyang Technological University/Documents/Python Scripts/schoolreviews.xlsx')
+    url = 'https://raw.githubusercontent.com/SantosJustinian/ThreadZero01/main/schoolreviews.xlsx'
+    df = pd.read_excel(url)
     
     # Apply sentiment analysis to the 'Reviews' column
     df['Sentiment'] = df['Reviews'].apply(sentiment_analysis)
