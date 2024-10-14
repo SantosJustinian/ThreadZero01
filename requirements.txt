@@ -4,3 +4,4 @@ textblob
 pandas
 openai
 openpyxl
+wordcloud
