@@ -39,47 +39,28 @@ def sentiment_analysis(text):
 # Function to generate sentiment distribution graph
 def sentiment_distribution_plot(df_filtered, title):
     fig = px.histogram(df_filtered, x='Sentiment', nbins=20, title=title)
-    st.plotly_chart(fig)
-
-    # Breakdown for sentiment
-    with st.expander("Click to see the data breakdown for Sentiment Distribution"):
-        sorted_df = df_filtered.sort_values(by='Sentiment', ascending=True)
-        st.dataframe(sorted_df[['Course', 'Reviews', 'Sentiment']])
+    return fig
 
 # Function to generate word cloud
 def word_cloud_plot(df_filtered, title):
     text = ' '.join(df_filtered['Reviews'].tolist())
     wordcloud = WordCloud(width=800, height=400, background_color='white').generate(text)
-    st.subheader(title)
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.imshow(wordcloud, interpolation='bilinear')
     ax.axis('off')
-    st.pyplot(fig)
-
-    # Breakdown for word cloud
-    with st.expander("Click to see the data breakdown for Word Cloud"):
-        st.dataframe(df_filtered[['Course', 'Reviews']])
+    return fig
 
 # Function to generate line chart for sentiment over time
 def sentiment_line_plot(df_filtered, title):
     fig = px.line(df_filtered, x='Year', y='Sentiment', title=title, markers=True)
-    st.plotly_chart(fig)
-
-    # Breakdown for sentiment over time
-    with st.expander("Click to see the data breakdown for Sentiment Over Time"):
-        sorted_df = df_filtered.sort_values(by=['Year', 'Sentiment'], ascending=True)
-        st.dataframe(sorted_df[['Year', 'Course', 'Sentiment']])
+    return fig
 
 # Function to generate pie chart for sentiment distribution
 def sentiment_pie_chart(df_filtered, title):
     sentiment_labels = ['Positive' if x > 0 else 'Negative' for x in df_filtered['Sentiment']]
     df_filtered['Sentiment Label'] = sentiment_labels
     fig = px.pie(df_filtered, names='Sentiment Label', title=title)
-    st.plotly_chart(fig)
-
-    # Breakdown for pie chart
-    with st.expander("Click to see the data breakdown for Pie Chart"):
-        st.dataframe(df_filtered[['Course', 'Reviews', 'Sentiment Label']])
+    return fig
 
 # Function to display metrics (total reviews, positive, and negative)
 def display_metrics(df_filtered):
@@ -101,11 +82,23 @@ def nbs_school_reviews_page(df_filtered):
     display_metrics(df_filtered)
 
     # Show graphs in two columns (two graphs per row)
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([1, 1], gap="medium")
     with col1:
-        sentiment_distribution_plot(df_filtered, "Sentiment Distribution for NBS Reviews")
+        fig1 = sentiment_distribution_plot(df_filtered, "Sentiment Distribution for NBS Reviews")
+        st.plotly_chart(fig1, use_container_width=True)
+
     with col2:
-        word_cloud_plot(df_filtered, "Word Cloud of NBS School Reviews")
+        fig2 = word_cloud_plot(df_filtered, "Word Cloud of NBS School Reviews")
+        st.pyplot(fig2)
+
+    col1, col2 = st.columns([1, 1], gap="medium")
+    with col1:
+        fig3 = sentiment_line_plot(df_filtered, "Sentiment Over Time for School Reviews")
+        st.plotly_chart(fig3, use_container_width=True)
+
+    with col2:
+        fig4 = sentiment_pie_chart(df_filtered, "Sentiment Breakdown for School Reviews")
+        st.plotly_chart(fig4, use_container_width=True)
 
 # Main function for Course Reviews Page
 def course_reviews_page(df_filtered):
@@ -113,18 +106,24 @@ def course_reviews_page(df_filtered):
     display_metrics(df_filtered)
 
     # Show graphs in two columns (two graphs per row)
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([1, 1], gap="medium")
     with col1:
-        sentiment_distribution_plot(df_filtered, "Sentiment Distribution for Course Reviews")
+        fig1 = sentiment_distribution_plot(df_filtered, "Sentiment Distribution for Course Reviews")
+        st.plotly_chart(fig1, use_container_width=True)
+
     with col2:
-        word_cloud_plot(df_filtered, "Word Cloud of Course Reviews")
+        fig2 = word_cloud_plot(df_filtered, "Word Cloud of Course Reviews")
+        st.pyplot(fig2)
 
     # Show additional graphs (line chart and pie chart)
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([1, 1], gap="medium")
     with col1:
-        sentiment_line_plot(df_filtered, "Sentiment Over Time for Course Reviews")
+        fig3 = sentiment_line_plot(df_filtered, "Sentiment Over Time for Course Reviews")
+        st.plotly_chart(fig3, use_container_width=True)
+
     with col2:
-        sentiment_pie_chart(df_filtered, "Sentiment Breakdown for Course Reviews")
+        fig4 = sentiment_pie_chart(df_filtered, "Sentiment Breakdown for Course Reviews")
+        st.plotly_chart(fig4, use_container_width=True)
 
 # Main function for Action Plan Page
 def action_plan_page(df_filtered):
@@ -188,10 +187,9 @@ def enhanced_dashboard():
     selected_sentiment = st.sidebar.selectbox("Select Sentiment", sentiments)
 
     # Apply filters
+    df_filtered = df.copy()  # Start with a copy of the full data
     if selected_school != 'All':
-        df_filtered = df[df['School'] == selected_school]
-    else:
-        df_filtered = df
+        df_filtered = df_filtered[df_filtered['School'] == selected_school]
 
     if selected_course != 'All':
         df_filtered = df_filtered[df_filtered['Course'] == selected_course]
