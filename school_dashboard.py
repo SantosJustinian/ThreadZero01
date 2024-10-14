@@ -1,23 +1,145 @@
-import streamlit as st
+import requests
 import pandas as pd
+import streamlit as st
 import plotly.express as px
 from textblob import TextBlob
-import openai
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+from io import BytesIO
 
-# Cache the data loading to avoid reloading each time the page refreshes
 @st.cache_data
 def load_data():
-    url = 'https://raw.githubusercontent.com/SantosJustinian/ThreadZero01/main/schoolreviews.xlsx'
-    df = pd.read_excel(url)
+    # Use the raw GitHub URL for the Excel file
+    github_url = 'https://raw.githubusercontent.com/SantosJustinian/ThreadZero01/main/schoolreviews.xlsx'
     
+    # Download the file as binary using requests
+    response = requests.get(github_url)
+    
+    # Check if the request was successful
+    if response.status_code != 200:
+        st.error("Error loading the file from GitHub.")
+        return None
+
+    # Read the Excel file from the binary content using openpyxl engine
+    df = pd.read_excel(BytesIO(response.content), engine='openpyxl')
+
+    # Ensure that all column names are stripped of extra spaces
+    df.columns = df.columns.str.strip()
+
     # Apply sentiment analysis to the 'Reviews' column
     df['Sentiment'] = df['Reviews'].apply(sentiment_analysis)
+    
     return df
 
 # Cache the sentiment analysis function
 @st.cache_data
 def sentiment_analysis(text):
     return TextBlob(text).sentiment.polarity
+
+# Function to generate sentiment distribution graph
+def sentiment_distribution_plot(df_filtered, title):
+    fig = px.histogram(df_filtered, x='Sentiment', nbins=20, title=title)
+    st.plotly_chart(fig)
+
+    # Breakdown for sentiment
+    with st.expander("Click to see the data breakdown for Sentiment Distribution"):
+        sorted_df = df_filtered.sort_values(by='Sentiment', ascending=True)
+        st.dataframe(sorted_df[['Course', 'Reviews', 'Sentiment']])
+
+# Function to generate word cloud
+def word_cloud_plot(df_filtered, title):
+    text = ' '.join(df_filtered['Reviews'].tolist())
+    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(text)
+    st.subheader(title)
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.imshow(wordcloud, interpolation='bilinear')
+    ax.axis('off')
+    st.pyplot(fig)
+
+    # Breakdown for word cloud
+    with st.expander("Click to see the data breakdown for Word Cloud"):
+        st.dataframe(df_filtered[['Course', 'Reviews']])
+
+# Function to generate line chart for sentiment over time
+def sentiment_line_plot(df_filtered, title):
+    fig = px.line(df_filtered, x='Year', y='Sentiment', title=title, markers=True)
+    st.plotly_chart(fig)
+
+    # Breakdown for sentiment over time
+    with st.expander("Click to see the data breakdown for Sentiment Over Time"):
+        sorted_df = df_filtered.sort_values(by=['Year', 'Sentiment'], ascending=True)
+        st.dataframe(sorted_df[['Year', 'Course', 'Sentiment']])
+
+# Function to generate pie chart for sentiment distribution
+def sentiment_pie_chart(df_filtered, title):
+    sentiment_labels = ['Positive' if x > 0 else 'Negative' for x in df_filtered['Sentiment']]
+    df_filtered['Sentiment Label'] = sentiment_labels
+    fig = px.pie(df_filtered, names='Sentiment Label', title=title)
+    st.plotly_chart(fig)
+
+    # Breakdown for pie chart
+    with st.expander("Click to see the data breakdown for Pie Chart"):
+        st.dataframe(df_filtered[['Course', 'Reviews', 'Sentiment Label']])
+
+# Function to display metrics (total reviews, positive, and negative)
+def display_metrics(df_filtered):
+    total_reviews = df_filtered.shape[0]
+    positive_reviews = df_filtered[df_filtered['Sentiment'] > 0].shape[0]
+    negative_reviews = total_reviews - positive_reviews
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric(label="Total Reviews", value=total_reviews)
+    with col2:
+        st.metric(label="Positive Reviews", value=f"{positive_reviews} ({(positive_reviews / total_reviews) * 100:.2f}%)")
+    with col3:
+        st.metric(label="Negative Reviews", value=f"{negative_reviews} ({(negative_reviews / total_reviews) * 100:.2f}%)")
+
+# Main function for NBS School Reviews Page
+def nbs_school_reviews_page(df_filtered):
+    st.subheader("NBS School Reviews")
+    display_metrics(df_filtered)
+
+    # Show graphs in two columns (two graphs per row)
+    col1, col2 = st.columns(2)
+    with col1:
+        sentiment_distribution_plot(df_filtered, "Sentiment Distribution for NBS Reviews")
+    with col2:
+        word_cloud_plot(df_filtered, "Word Cloud of NBS School Reviews")
+
+# Main function for Course Reviews Page
+def course_reviews_page(df_filtered):
+    st.subheader("Course Reviews")
+    display_metrics(df_filtered)
+
+    # Show graphs in two columns (two graphs per row)
+    col1, col2 = st.columns(2)
+    with col1:
+        sentiment_distribution_plot(df_filtered, "Sentiment Distribution for Course Reviews")
+    with col2:
+        word_cloud_plot(df_filtered, "Word Cloud of Course Reviews")
+
+    # Show additional graphs (line chart and pie chart)
+    col1, col2 = st.columns(2)
+    with col1:
+        sentiment_line_plot(df_filtered, "Sentiment Over Time for Course Reviews")
+    with col2:
+        sentiment_pie_chart(df_filtered, "Sentiment Breakdown for Course Reviews")
+
+# Main function for Action Plan Page
+def action_plan_page(df_filtered):
+    st.subheader("Action Plan")
+    if st.button("Generate Action Plan for Dean"):
+        reviews = df_filtered['Reviews'].tolist()
+        with st.spinner("Generating action plan..."):
+            action_plan = generate_action_plan(reviews)
+        st.subheader("Action Plan for Dean")
+        st.write(action_plan)
+
+# Function for Raw Reviews Page
+def raw_reviews_page(df_filtered):
+    st.subheader("Raw Reviews")
+    st.dataframe(df_filtered[['Year', 'Month', 'School', 'Course', 'Reviews']])
 
 # Cache OpenAI action plan generation to avoid redundant calls
 @st.cache_data
@@ -31,74 +153,67 @@ def generate_action_plan(reviews):
     )
     return response.choices[0].text.strip()
 
-# The main function that runs the Streamlit app
+# Main function for the Streamlit dashboard
 def enhanced_dashboard():
-    st.title("Enhanced School Reviews Dashboard")
+    st.title("ThreadZero - School and Course Reviews")
 
-    # Load and apply sentiment analysis to the dataset
+    # Load data
     df = load_data()
 
-    # Sidebar filters
-    years = df['Year'].unique()
+    if df is None:
+        st.error("Failed to load data.")
+        return
+
+    # Sidebar navigation
+    navigation = st.sidebar.selectbox("Select a Page", ["NBS School Reviews", "Course Reviews", "Action Plan", "Raw Reviews"])
+
+    # Filters for school, course, year, and month
+    schools = df['School'].unique()
+    selected_school = st.sidebar.selectbox("Select School", ['All'] + list(schools))
+
+    courses = df['Course'].unique()
+    selected_course = st.sidebar.selectbox("Select Course", ['All'] + list(courses))
+
+    years = ['All'] + list(df['Year'].unique())
     selected_year = st.sidebar.selectbox("Select Year", years)
+
+    # **Check if the 'Month' column exists** before applying the filter
+    if 'Month' in df.columns:
+        months = ['All'] + list(df['Month'].unique())
+        selected_month = st.sidebar.selectbox("Select Month", months)
+    else:
+        selected_month = 'All'
 
     sentiments = ['All', 'Positive', 'Negative']
     selected_sentiment = st.sidebar.selectbox("Select Sentiment", sentiments)
 
-    # Add Course Filter
-    courses = df['Course'].unique()
-    selected_course = st.sidebar.selectbox("Select Course", ['All'] + list(courses))
+    # Apply filters
+    if selected_school != 'All':
+        df_filtered = df[df['School'] == selected_school]
+    else:
+        df_filtered = df
 
-    # Filter data
-    filtered_df = df[df['Year'] == selected_year]
     if selected_course != 'All':
-        filtered_df = filtered_df[filtered_df['Course'] == selected_course]
+        df_filtered = df_filtered[df_filtered['Course'] == selected_course]
+
+    if selected_year != 'All':
+        df_filtered = df_filtered[df_filtered['Year'] == selected_year]
+
+    if selected_month != 'All' and 'Month' in df.columns:
+        df_filtered = df_filtered[df_filtered['Month'] == selected_month]
+
     if selected_sentiment != 'All':
-        sentiment_condition = filtered_df['Sentiment'] > 0 if selected_sentiment == 'Positive' else filtered_df['Sentiment'] <= 0
-        filtered_df = filtered_df[sentiment_condition]
+        sentiment_condition = df_filtered['Sentiment'] > 0 if selected_sentiment == 'Positive' else df_filtered['Sentiment'] <= 0
+        df_filtered = df_filtered[sentiment_condition]
 
-    # Summary cards
-    total_reviews = filtered_df.shape[0]
-    positive_reviews = filtered_df[filtered_df['Sentiment'] > 0].shape[0]
-    negative_reviews = total_reviews - positive_reviews
-
-    st.subheader(f"Total Reviews: {total_reviews}")
-    st.subheader(f"Positive Reviews: {positive_reviews} ({(positive_reviews / total_reviews) * 100:.2f}%)")
-    st.subheader(f"Negative Reviews: {negative_reviews} ({(negative_reviews / total_reviews) * 100:.2f}%)")
-
-    # Sentiment distribution plot with explanation
-    fig = px.histogram(filtered_df, x='Sentiment', nbins=20, title='Sentiment Distribution',
-                       color_discrete_sequence=["#800000", "#000080", "#FFFFFF"])
-    st.plotly_chart(fig)
-
-    with st.expander("How was this graph generated?"):
-        st.write("""
-        **Sentiment Distribution**: 
-        This histogram shows the distribution of sentiment scores across reviews. 
-        Sentiment is calculated using TextBlob, which assigns a polarity score ranging from -1 (very negative) to 1 (very positive). 
-        The x-axis represents these sentiment scores, while the y-axis indicates the count of reviews with a particular sentiment score.
-        """)
-
-    # Sentiment by course and year with explanation
-    fig = px.bar(filtered_df, x='Course', y='Sentiment', color='Year', title='Sentiment by Course and Year',
-                 color_discrete_sequence=["#800000", "#000080", "#FFFFFF"])
-    st.plotly_chart(fig)
-
-    with st.expander("How was this graph generated?"):
-        st.write("""
-        **Sentiment by Course and Year**: 
-        This bar chart shows the average sentiment for each course in the selected year. 
-        Sentiment scores are aggregated to give an overall measure of how positively or negatively students feel about each course. 
-        The x-axis represents the courses, while the y-axis shows the average sentiment score for the course.
-        """)
-
-    # Generate action plan
-    if st.button("Generate Action Plan for Dean"):
-        reviews = filtered_df['Reviews'].tolist()
-        with st.spinner("Generating action plan..."):
-            action_plan = generate_action_plan(reviews)
-        st.subheader("Action Plan for Dean")
-        st.write(action_plan)
+    if navigation == "NBS School Reviews":
+        nbs_school_reviews_page(df_filtered)
+    elif navigation == "Course Reviews":
+        course_reviews_page(df_filtered)
+    elif navigation == "Action Plan":
+        action_plan_page(df_filtered)
+    elif navigation == "Raw Reviews":
+        raw_reviews_page(df_filtered)
 
 # Run the dashboard
 if __name__ == "__main__":
