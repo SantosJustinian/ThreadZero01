@@ -120,50 +120,31 @@ def nbs_school_reviews_page(df_filtered):
         fig4 = sentiment_pie_chart(df_filtered, "Sentiment Breakdown for School Reviews")
         st.plotly_chart(fig4, use_container_width=True)
 
-# Main function for Course Reviews Page
-def course_reviews_page(df_filtered):
-    st.subheader("Course Reviews")
-    display_metrics(df_filtered)
+def apply_custom_css():
+    st.markdown("""
+        <style>
+        .review-container {
+            text-align: center;
+            font-family: 'Aptos', sans-serif;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .review-text {
+            margin: 0 auto;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            max-width: 800px;
+            
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
-    # Show graphs in two columns (two graphs per row)
-    col1, col2 = st.columns([1, 1], gap="medium")
-    with col1:
-        fig1 = sentiment_distribution_plot(df_filtered, "Sentiment Distribution for Course Reviews")
-        st.plotly_chart(fig1, use_container_width=True)
-
-    with col2:
-        fig2 = word_cloud_plot(df_filtered, "Word Cloud of Course Reviews")
-        st.pyplot(fig2)
-
-    # Show additional graphs (line chart and pie chart)
-    col1, col2 = st.columns([1, 1], gap="medium")
-    with col1:
-        fig3 = sentiment_line_plot(df_filtered, "Sentiment Over Time for Course Reviews")
-        st.plotly_chart(fig3, use_container_width=True)
-
-    with col2:
-        fig4 = sentiment_pie_chart(df_filtered, "Sentiment Breakdown for Course Reviews")
-        st.plotly_chart(fig4, use_container_width=True)
-
-# Main function for Action Plan Page
-def action_plan_page(df_filtered):
-    st.subheader("Action Plan")
-    if st.button("Generate Action Plan for Dean"):
-        reviews = df_filtered['Reviews'].tolist()
-        with st.spinner("Generating action plan..."):
-            action_plan = generate_action_plan(reviews)
-        st.subheader("Action Plan for Dean")
-        st.write(action_plan)
-
-# Function for Raw Reviews Page
-def raw_reviews_page(df_filtered):
-    st.subheader("Raw Reviews")
-    st.dataframe(df_filtered[['Year', 'Month', 'School', 'Course', 'Reviews']])
-
-# Function for NTU Reviews Page
 def ntu_reviews_page(df_filtered):
     st.subheader("NTU Reviews")
     display_metrics(df_filtered)
+
+    # Apply custom CSS
+    apply_custom_css()
 
     # Show graphs in two columns (two graphs per row)
     col1, col2 = st.columns([1, 1], gap="medium")
@@ -184,10 +165,28 @@ def ntu_reviews_page(df_filtered):
         fig4 = sentiment_pie_chart(df_filtered, "Sentiment Breakdown for NTU Reviews")
         st.plotly_chart(fig4, use_container_width=True)
 
+    # Sort reviews by most recent (Year and Month) and display them
+    st.subheader("Recent NTU Reviews")
+    df_sorted = df_filtered.sort_values(by=['Year', 'Month'], ascending=[False, False])
+    
+    for index, row in df_sorted.iterrows():
+        st.markdown(f"""
+        <div class="review-container">
+            <div class="review-text">
+                <strong>{row['Year']} {row['Month']}</strong> - {row['Course']}<br>
+                {row['Reviews']}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
 # Function for NUS Reviews Page
+# Main function for NUS Reviews Page with line break between date and review text
 def nus_reviews_page(df_filtered):
     st.subheader("NUS Reviews")
     display_metrics(df_filtered)
+
+    # Apply custom CSS
+    apply_custom_css()
 
     # Show graphs in two columns (two graphs per row)
     col1, col2 = st.columns([1, 1], gap="medium")
@@ -207,6 +206,21 @@ def nus_reviews_page(df_filtered):
     with col2:
         fig4 = sentiment_pie_chart(df_filtered, "Sentiment Breakdown for NUS Reviews")
         st.plotly_chart(fig4, use_container_width=True)
+
+    # Sort reviews by most recent (Year and Month) and display them
+    st.subheader("Recent NUS Reviews")
+    df_sorted = df_filtered.sort_values(by=['Year', 'Month'], ascending=[False, False])
+    
+    for index, row in df_sorted.iterrows():
+        st.markdown(f"""
+        <div class="review-container">
+            <div class="review-text">
+                <strong>{row['Year']} {row['Month']}</strong> - {row['Course']}<br>
+                {row['Reviews']}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
 
 
 def comparison_page(df_ntu, df_nus):
