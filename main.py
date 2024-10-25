@@ -24,7 +24,7 @@ DB_NAME = st.secrets["MYSQL_DATABASE"]
 
 reddit = praw.Reddit(
     client_id=st.secrets["REDDIT_CLIENT_ID"],      
-    client_secret=st.secrets9["REDDIT_CLIENT_SECRET"], 
+    client_secret=st.secrets["REDDIT_CLIENT_SECRET"], 
     user_agent='SchoolReviews'
 )
 
