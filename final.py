@@ -20,13 +20,7 @@ import subprocess
 import sys
 
 
-try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    # Download the model
-    subprocess.run([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
-    nlp = spacy.load("en_core_web_sm")
-load_dotenv()
+nlp = spacy.load("en_core_web_sm")
 
 # Retrieve the environment variables
 DB_HOST = st.secrets["MYSQL_HOST"]
