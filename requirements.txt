@@ -12,3 +12,4 @@ requests
 beautifulsoup4
 spacy
 openai
+en-core-web-sm
