@@ -20,11 +20,17 @@ import subprocess
 import sys
 from spacy.cli import download
 
-try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    download("en_core_web_sm")
-    nlp = spacy.load("en_core_web_sm")
+model_name = "en_core_web_sm"
+model_path = os.path.expanduser(f"~/.spacy/{model_name}")
+
+# Check if the model directory exists, and load it from there
+if not os.path.exists(model_path):
+    # Download the model to the user-writable directory
+    download(model_name)
+    spacy.util.set_data_path(os.path.dirname(model_path))
+
+# Now load the model from the user-specific path
+nlp = spacy.load(model_name)
 
 # Retrieve the environment variables
 DB_HOST = st.secrets["MYSQL_HOST"]
