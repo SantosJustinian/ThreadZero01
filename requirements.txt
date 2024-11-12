@@ -11,5 +11,4 @@ praw
 requests
 beautifulsoup4
 spacy
-en-core-web-sm  # Replace 3.5.0 with the required version
 openai
