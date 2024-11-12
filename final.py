@@ -16,9 +16,16 @@ import spacy
 from spacy.matcher import Matcher
 from collections import Counter
 from openai import OpenAI
+import subprocess
+import sys
 
 
-nlp = spacy.load("en_core_web_sm")
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    # Download the model
+    subprocess.run([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
+    nlp = spacy.load("en_core_web_sm")
 load_dotenv()
 
 # Retrieve the environment variables
