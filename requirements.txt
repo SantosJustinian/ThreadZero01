@@ -9,6 +9,5 @@ matplotlib
 praw
 requests
 beautifulsoup4
-sqlalchemy
+spacy
 openai
-altair
