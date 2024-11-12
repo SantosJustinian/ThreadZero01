@@ -18,9 +18,13 @@ from collections import Counter
 from openai import OpenAI
 import subprocess
 import sys
+from spacy.cli import download
 
-
-nlp = spacy.load("en_core_web_sm")
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    download("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
 
 # Retrieve the environment variables
 DB_HOST = st.secrets["MYSQL_HOST"]
