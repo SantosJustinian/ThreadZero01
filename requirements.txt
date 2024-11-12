@@ -1,6 +1,7 @@
 streamlit
-mysql-connector-python
+numpy==1.26.1
 pandas
+mysql-connector-python
 python-dotenv
 textblob
 plotly
@@ -10,6 +11,5 @@ praw
 requests
 beautifulsoup4
 spacy
-https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.5.0/en_core_web_sm-3.5.0-py3-none-any.whl
 openai
-numpy==1.26.1
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.5.0/en_core_web_sm-3.5.0-py3-none-any.whl
