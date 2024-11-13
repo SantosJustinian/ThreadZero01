@@ -31,7 +31,7 @@ OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 reddit = praw.Reddit(
     client_id=st.secrets["REDDIT_CLIENT_ID"],      
     client_secret=st.secrets["REDDIT_CLIENT_SECRET"], 
-    user_agent=st.secrets["REDDIT_USER_AGENT"]
+    user_agent='SchoolReviews'
 )
 current_date = datetime.now()
 scrape_year = current_date.year
