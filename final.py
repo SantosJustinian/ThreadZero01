@@ -20,7 +20,7 @@ import subprocess
 import sys
 from spacy.cli import download
 
-nlp = spacy.load(model_name)
+nlp = spacy.load("en_core_web_sm")
 
 # Retrieve the environment variables
 DB_HOST = st.secrets["MYSQL_HOST"]
