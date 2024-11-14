@@ -39,7 +39,7 @@ scrape_month = current_date.month
 scrape_date = current_date.day
 
 # Define keywords
-keywords = ["Nanyang Business School", "National University Singapore", "Singapore"]
+keywords = ["Nanyang Business School", "National University Singapore"]
 
 # Function to scrape Mothership
 def scrape_mothership():
@@ -180,7 +180,10 @@ def scrape_all_sources():
         scrape_straitstimes(),
         scrape_multimedia()
     ]
-    return pd.concat(dataframes, ignore_index=True)
+    if dataframe:
+        return pd.concat(dataframes, ignore_index=True)
+    else: 
+        st.write("There is no current news on NTU and NUS")
 
 def filter_news_by_keywords(data, keywords):
     return data[data['content'].str.contains('|'.join(keywords), case=False)]
