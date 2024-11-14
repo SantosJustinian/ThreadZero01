@@ -243,7 +243,7 @@ def extract_aspects(text):
 def homepage():
     
     st.title("Whats Poppin on the News")
-    st.write("News sources are scarpped from mothership, Straits Times, CNA and Business Times")
+    st.write("News sources are scraped from Mothership, Straits Times, CNA and Business Times")
     
     if 'data' not in st.session_state:
         st.session_state['data'] = scrape_all_sources()
