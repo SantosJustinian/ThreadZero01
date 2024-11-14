@@ -39,7 +39,7 @@ scrape_month = current_date.month
 scrape_date = current_date.day
 
 # Define keywords
-keywords = ["NBS", "NTU"]
+keywords = ["Nanyang Business School", "National University Singapore"]
 
 # Function to scrape Mothership
 def scrape_mothership():
