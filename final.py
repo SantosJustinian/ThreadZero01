@@ -171,7 +171,7 @@ def scrape_multimedia():
 
     return pd.DataFrame(data5)
 
-# Function to scrape all sources
+@st.cache_data
 def scrape_all_sources():
     dataframes = [
         scrape_mothership(),
@@ -184,6 +184,7 @@ def scrape_all_sources():
 
 def filter_news_by_keywords(data, keywords):
     return data[data['content'].str.contains('|'.join(keywords), case=False)]
+    
 
 def analyze_sentiment_aspects(df):
     sentiments = []
@@ -256,7 +257,7 @@ def homepage():
             st.write(f"**Content:** {row['content']}")
             st.write(f"Link to post: {row['link']}")
             st.write("---") 
-
+@st.cache_data
 def load_and_analyze_data(table_name):
     try:
         conn = mysql.connector.connect(
@@ -309,7 +310,7 @@ def load_and_analyze_data(table_name):
     except mysql.connector.Error as e:
         st.error(f"Error connecting to the database: {e}")
         return None
-    
+@st.cache_data    
 def connect_to_rds():
     try:
         conn = mysql.connector.connect(
@@ -355,7 +356,7 @@ def word_cloud_plot(df, title):
     ax.imshow(wordcloud, interpolation='bilinear')
     ax.axis('off')
     return fig
-
+@st.cache_data
 def fetch_nus_data():
     try:
         conn = mysql.connector.connect(
