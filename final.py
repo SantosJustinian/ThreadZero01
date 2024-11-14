@@ -593,6 +593,7 @@ def stalking_nus_page():
     else:
         st.warning("No data available in the NUS dashboard.")
 
+@st.cache_data
 def extract_most_frequent_positive_nouns(df):
     # Filter for positive comments
     positive_comments = df[df['polarity'] > 0]['content']
@@ -756,7 +757,7 @@ def comparison_page(df_ntu, df_nus):
         title="Positive Reviews Over Time (NTU vs NUS)"
     )
     st.plotly_chart(fig_positive_reviews, use_container_width=True)
-
+@st.cache_data
 def load_data_from_db():
     try:
         conn = mysql.connector.connect(
