@@ -180,7 +180,7 @@ def scrape_all_sources():
         scrape_straitstimes(),
         scrape_multimedia()
     ]
-    if dataframe:
+    if dataframes:
         return pd.concat(dataframes, ignore_index=True)
     else: 
         st.write("There is no current news on NTU and NUS")
